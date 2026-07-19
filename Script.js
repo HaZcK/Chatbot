@@ -335,68 +335,72 @@ async function sendMessage(){
     typingIndicator.hidden=false;
 
     sendBtn.disabled=true;
+   
+   try{
 
-    try{
+    const response = await fetch(
 
-        const response = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
 
-            "https://api.groq.com/openai/v1/chat/completions",
+        {
 
-            {
+            method:"POST",
 
-                method:"POST",
+            headers:{
 
-                headers:{
+                "Authorization":"Bearer "+apiKey,
 
-                    "Authorization":"Bearer "+apiKey,
+                "Content-Type":"application/json"
 
-                    "Content-Type":"application/json"
+            },
 
-                },
+            body:JSON.stringify({
 
-                body:JSON.stringify({
+                model:model,
 
-                    model:model,
+                messages:conversations[currentChat].messages,
 
-                    messages:conversations[currentChat].messages
+                stream:true
 
-                })
-
-            }
-
-        );
-
-        if(!response.ok){
-
-            throw new Error(
-
-                "HTTP "+response.status
-
-            );
+            })
 
         }
 
-        const data=
+    );
 
-        await response.json();
+    if(!response.ok){
 
-        const reply=
+        throw new Error(
 
-        data.choices[0].message.content;
+            "HTTP "+response.status
 
-        conversations[currentChat].messages.push({
-
-            role:"ai",
-
-            content:reply
-
-        });
-
-        saveChats();
-
-        renderMessages();
+        );
 
     }
+
+    // ===== PART 3A =====
+
+    const reader = response.body.getReader();
+
+    const decoder = new TextDecoder();
+
+    let streamText = "";
+
+    const aiBubble = {
+
+        role:"ai",
+
+        content:""
+
+    };
+
+    conversations[currentChat].messages.push(aiBubble);
+
+    renderMessages();
+
+    // ===================
+
+   }
 
     catch(err){
 
