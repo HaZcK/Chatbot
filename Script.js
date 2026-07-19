@@ -427,8 +427,28 @@ while (true) {
         const json = line.replace("data: ", "").trim();
 
         if (json === "[DONE]") continue;
+       let data;
 
-        // Part 3B-2 akan lanjut di sini
+try {
+
+    data = JSON.parse(json);
+
+}
+catch {
+
+    continue;
+
+}
+
+const delta = data.choices?.[0]?.delta?.content;
+
+if (!delta) continue;
+
+aiBubble.content += delta;
+
+renderMessages();
+
+scrollBottom();
     }
 
    }
