@@ -399,6 +399,37 @@ async function sendMessage(){
     renderMessages();
 
     // ===================
+      // ==========================
+// PART 3B-1
+// Membaca Stream
+// ==========================
+
+while (true) {
+
+    const { done, value } = await reader.read();
+
+    if (done) break;
+
+    streamText += decoder.decode(value, {
+
+        stream: true
+
+    });
+
+    const lines = streamText.split("\n");
+
+    streamText = lines.pop();
+
+    for (const line of lines) {
+
+        if (!line.startsWith("data: ")) continue;
+
+        const json = line.replace("data: ", "").trim();
+
+        if (json === "[DONE]") continue;
+
+        // Part 3B-2 akan lanjut di sini
+    }
 
    }
 
