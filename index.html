@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chatbot Premium - Powered by Groq</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #1e1e2e; color: #cdd6f4; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .box { background: #313244; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input, textarea { width: 100%; padding: 10px; background: #45475a; border: 1px solid #585b70; color: #cdd6f4; border-radius: 6px; box-sizing: border-box; margin-bottom: 10px; }
+        button { padding: 10px 20px; background-color: #a6e3a1; color: #11111b; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #94e2d5; }
+        .chat-box { height: 300px; overflow-y: auto; background: #181825; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #45475a; }
+        .msg { margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .user-msg { background: #89b4fa; color: #11111b; align-self: flex-end; margin-left: auto; text-align: right; }
+        .ai-msg { background: #45475a; color: #cdd6f4; }
+        .loader { display: none; text-align: center; color: #f9e2af; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- INPUT API KEY DARI GROQ CONSOLE -->
+    <div class="box">
+        <h3>🔑 Masukkan API Key Groq Anda</h3>
+        <p><small style="color: #a6adc8;">Ambil kunci dari console.groq.com. Kunci aman di browser Anda sendiri.</small></p>
+        <input type="password" id="groqKey" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
+    </div>
+
+    <!-- WIDGET CHAT BOX AI -->
+    <div class="box">
+        <h3>🤖 Groq AI Chatbot</h3>
+        <div id="chatBox" class="chat-box">
+            <div class="msg ai-msg">Halo! Masukkan API Key Groq kamu di atas, lalu ketik pesan di bawah untuk mulai mengobrol!</div>
+        </div>
+        
+        <!-- Loading Drama Penjaga Server -->
+        <div id="loadingTeks" class="loader">⚡ Polisi Groq sedang memproses jawaban super cepat...</div>
+
+        <textarea id="inputPesan" rows="3" placeholder="Ketik sesuatu ke AI..."></textarea>
+        <button onclick="kirimKeGroq()">Kirim ke AI</button>
+    </div>
+</div>
+
+<script>
+    function kirimKeGroq() {
+        const apiKey = document.getElementById("groqKey").value.trim();
+        const pesanUser = document.getElementById("inputPesan").value.trim();
+        const chatBox = document.getElementById("chatBox");
+        const loader = document.getElementById("loadingTeks");
+
+        if (!apiKey) {
+            alert("❌ Masukkan API Key Groq kamu dulu di kotak atas!");
+            return;
+        }
+        if (!pesanUser) return;
+
+        // 1. Tampilkan pesan user di layar chat
+        chatBox.innerHTML += `<div class="msg user-msg">${pesanUser}</div>`;
+        document.getElementById("inputPesan").value = ""; // Kosongkan input
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll otomatis ke bawah
+
+        // 2. Nyalakan loading
+        loader.style.display = "block";
+
+        // 3. Tembak Pintu Gerbang API Groq (Menggunakan fetch)
+        fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`, // Kunci diserahkan ke polisi Groq di sini
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "llama3-8b-8192", // Model default Groq yang super cepat
+                messages: [{ role: "user", content: pesanUser }]
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Polisi Server Menolak! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 4. Ambil teks balasan AI dari struktur JSON Groq
+            const balasanAI = data.choices[0].message.content;
+            
+            // Matikan loading, tampilkan jawaban
+            loader.style.display = "none";
+            chatBox.innerHTML += `<div class="msg ai-msg">${balasanAI}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        })
+        .catch(error => {
+            loader.style.display = "none";
+            chatBox.innerHTML += `<div class="msg ai-msg" style="color: #f38ba8;">❌ Error: ${error.message}. Periksa kembali apakah API Key kamu typo atau kuota harian Groq gratisanmu habis.</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    }
+</script>
+</body>
+</html>
