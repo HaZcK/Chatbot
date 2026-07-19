@@ -272,3 +272,162 @@ promptInput.addEventListener(
     }
 
 );
+
+/* ==========================
+   PART 2
+   Groq API
+========================== */
+
+async function sendMessage(){
+
+    const text = promptInput.value.trim();
+
+    if(text === "") return;
+
+    const apiKey = apiKeyInput.value.trim();
+
+    if(apiKey === ""){
+
+        alert("Masukkan API Key terlebih dahulu.");
+
+        return;
+
+    }
+
+    const model = modelSelect.value;
+
+    /* Buat chat jika belum ada */
+
+    if(!conversations[currentChat]){
+
+        createChat();
+
+    }
+
+    /* Simpan pesan user */
+
+    conversations[currentChat].messages.push({
+
+        role:"user",
+
+        content:text
+
+    });
+
+    /* Judul chat */
+
+    if(conversations[currentChat].title==="Chat Baru"){
+
+        conversations[currentChat].title=
+
+        text.substring(0,30);
+
+    }
+
+    saveChats();
+
+    renderHistory();
+
+    renderMessages();
+
+    promptInput.value="";
+
+    typingIndicator.hidden=false;
+
+    sendBtn.disabled=true;
+
+    try{
+
+        const response = await fetch(
+
+            "https://api.groq.com/openai/v1/chat/completions",
+
+            {
+
+                method:"POST",
+
+                headers:{
+
+                    "Authorization":"Bearer "+apiKey,
+
+                    "Content-Type":"application/json"
+
+                },
+
+                body:JSON.stringify({
+
+                    model:model,
+
+                    messages:conversations[currentChat].messages
+
+                })
+
+            }
+
+        );
+
+        if(!response.ok){
+
+            throw new Error(
+
+                "HTTP "+response.status
+
+            );
+
+        }
+
+        const data=
+
+        await response.json();
+
+        const reply=
+
+        data.choices[0].message.content;
+
+        conversations[currentChat].messages.push({
+
+            role:"ai",
+
+            content:reply
+
+        });
+
+        saveChats();
+
+        renderMessages();
+
+    }
+
+    catch(err){
+
+        conversations[currentChat].messages.push({
+
+            role:"ai",
+
+            content:
+
+            "❌ Error : "+err.message
+
+        });
+
+        renderMessages();
+
+    }
+
+    finally{
+
+        typingIndicator.hidden=true;
+
+        sendBtn.disabled=false;
+
+        scrollBottom();
+
+    }
+
+}
+
+/* ==========================
+   Tombol Kirim
+========================== */
+
+sendBtn.onclick=sendMessage;
