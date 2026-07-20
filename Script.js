@@ -451,8 +451,10 @@ renderMessages();
 scrollBottom();
     }
 
+}
+      saveChats();
+      renderMessages();
    }
-
     catch(err){
 
         conversations[currentChat].messages.push({
